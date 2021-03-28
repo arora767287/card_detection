@@ -14,16 +14,12 @@ def template_image(template_img, img_fields):
     
     #image processing operations on the template image
     ret, thresh = cv2.threshold(img,127,200,cv2.THRESH_BINARY)
-
     gray_image = cv2.cvtColor(thresh, cv2.COLOR_BGR2GRAY)
-
     retl, threshl = cv2.threshold(img,30,200,cv2.THRESH_BINARY_INV)
-
     gray = cv2.cvtColor(threshl, cv2.COLOR_BGR2GRAY)
 
     #Finds contours along the black rectangles on the template image
     contours, hierarchy = cv2.findContours(gray, cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
-
     grayimg = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     #Finds the external outline contour of the image
