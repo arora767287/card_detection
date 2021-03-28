@@ -199,7 +199,7 @@ def find_information(image_information, picture):
     return information
 
 #Program starts here
-lines = template_image("image_new.png", "image_new_copy.png")
+lines = template_image("image_new_copy.png")
 rectangles = information(lines)
 img_url = input("Insert image path (or just drag and drop the image into terminal): ")
 
