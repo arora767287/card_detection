@@ -10,5 +10,10 @@ cv2
 numpy
 imutils
 
+The program landscape images of the NRIC card as input, so make sure the width of the input image is larger than its height. It also works best when the image
+of the NRIC card is taken from a distance, and is centered in the frame of the picture (straightened).
+
+
+
 
 
