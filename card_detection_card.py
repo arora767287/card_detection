@@ -237,7 +237,6 @@ if option == '1':
         # from the image and display it
         if len(ref_point) == 2:
             picture = clone[ref_point[0][1]:ref_point[1][1], ref_point[0][0]:ref_point[1][0]]
-    #cv2.imshow("crop_img", crop_img)
     
 #If the user wants to make the computer crop the image
 elif option == '2':
