@@ -2,131 +2,129 @@ import cv2
 import numpy as np
 import imutils
 from imutils import contours
-import PySimpleGUI
-import sympy
-import matplotlib
-from document import Warper
 import pytesseract
+def template_image(template_img, img_fields):
+    img = cv2.imread(img_fields)
+    blank_img = cv2.imread(template_img)
+    blank_img = np.array(blank_img)
+    img = np.array(img)
 
-# Read the image and transform it to HSV color space
+    ret, thresh = cv2.threshold(img,127,200,cv2.THRESH_BINARY)
 
-img = cv2.imread("image_new_copy.png")
-blank_img = cv2.imread("image_new.png")
-blank_img = np.array(blank_img)
-img = np.array(img)
+    gray_image = cv2.cvtColor(thresh, cv2.COLOR_BGR2GRAY)
 
-ret, thresh = cv2.threshold(img,127,200,cv2.THRESH_BINARY)
+    retl, threshl = cv2.threshold(img,30,200,cv2.THRESH_BINARY_INV)
 
-gray_image = cv2.cvtColor(thresh, cv2.COLOR_BGR2GRAY)
+    gray = cv2.cvtColor(threshl, cv2.COLOR_BGR2GRAY)
 
-retl, threshl = cv2.threshold(img,30,200,cv2.THRESH_BINARY_INV)
+    contours, hierarchy = cv2.findContours(gray, cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
 
-gray = cv2.cvtColor(threshl, cv2.COLOR_BGR2GRAY)
+    grayimg = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    contour, hierarch = cv2.findContours(grayimg, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    print(len(contour))
+    cv2.drawContours(blank_img, contour, -1, (0,0,255),1)
+    c = np.array([contours[0],contours[1],contours[2],contours[3],contours[4],contours[21], contour[0]])
+    return c
+def information(contours):
+    placement = ['nationality', 'gender', 'date of birth', 'name', 'picture', 'fin_number', 'entire']
+    contour_rectangles = {
+        'name': 0,
+        'gender': 0,
+        'date of birth': 0,
+        'nationality': 0,
+        'fin_number': 0,
+        'picture': 0,
+        'entire':0
+    }
+    boundRect = [None]*len(contours)
+    contours_poly = [None]*len(contours)
 
-contours, hierarchy = cv2.findContours(gray, cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
+    for i in range(0, len(contours)):
+        center = cv2.moments(contours[i])
+        if(center["m00"]==0):
+            center["m00"] = 1
+        centerX = int(center["m10"]/center["m00"])
+        centerY = int(center["m01"]/center["m00"])
+        contours_poly[i] = cv2.approxPolyDP(contours[i], 3, True)
+        boundRect[i] = cv2.boundingRect(contours_poly[i])
+        contour_rectangles[placement[i]] = [boundRect[i], centerX, centerY]
+    return contour_rectangles    
+def input_image(image_url):
+	initial = cv2.imread(image_url)
 
-grayimg = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-contour, hierarch = cv2.findContours(grayimg, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-print(len(contour))
-cv2.drawContours(blank_img, contour, -1, (0,0,255),1)
-c = np.array([contours[0],contours[1],contours[2],contours[3],contours[4],contours[21], contour[0]])
-cv2.drawContours(blank_img, c, -1, (0,0,255), 1)
+	width = int(initial.shape[1] * 5 / 100)
+	height = int(initial.shape[0] * 5 / 100)
 
-placement = ['nationality', 'gender', 'date of birth', 'name', 'picture', 'fin_number', 'entire']
-contour_rectangles = {
-    'name': 0,
-    'gender': 0,
-    'date of birth': 0,
-    'nationality': 0,
-    'fin_number': 0,
-    'picture': 0,
-    'entire':0
-}
-boundRect = [None]*len(c)
-contours_poly = [None]*len(c)
+	# dsize
+	dsize = (width, height)
+	image = cv2.resize(initial,dsize)
+	gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+	gray = cv2.GaussianBlur(gray, (5, 5), 0)
+	edged = cv2.Canny(gray, 60, 70)
+	contours, hierarchy = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+	#cv2.drawContours(image, contours, -1, (0,255,0), 1)
+	cnts = sorted(contours, key = cv2.contourArea, reverse=True)[:5]
+	# loop over the contours
+	for c in cnts:
+		# approximate the contour
+		peri = cv2.arcLength(c, True)
+		approx = cv2.approxPolyDP(c, 0.02 * peri, True)
+		# if our approximated contour has four points, then we
+		# can assume that we have found our screen
+		if len(approx) == 4:
+			screenCnt = approx
+			break
+	# show the contour (outline) of the piece of paper
+	cv2.drawContours(image, [screenCnt], -1, (0, 255, 0), 2)
+	rectangle = cv2.boundingRect(screenCnt)
+	print(rectangle)
 
-for i in range(0, len(c)):
-    center = cv2.moments(c[i])
-    if(center["m00"]==0):
-        center["m00"] = 1
-    centerX = int(center["m10"]/center["m00"])
-    centerY = int(center["m01"]/center["m00"])
-    cv2.drawContours(blank_img, c[i], -1, (0,255,0), 2)
-    cv2.circle(blank_img, (centerX, centerY), 12, (255,255,255),-1)
-    cv2.putText(blank_img, "center " + str(i), (centerX-20, centerY-20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255),2)
-    contours_poly[i] = cv2.approxPolyDP(c[i], 3, True)
-    boundRect[i] = cv2.boundingRect(contours_poly[i])
-    contour_rectangles[placement[i]] = [boundRect[i], centerX, centerY]
+	#Resized image width and height
+	x_value, y_value, newwidth, newheight = rectangle
+	centerX = x_value+(newwidth/2)
+	centerY = y_value+(newheight/2)
 
-ref_point = []
-cropping = False
+	initialwidth = initial.shape[1]
+	initialheight = initial.shape[0]
+	initialCenterX = initialwidth/2
+	initialCenterY = initialheight/2
 
-def shape_selection(event, x, y, flags, param):
-  # grab references to the global variables
-  global ref_point, cropping
+	resizedCenterX = width/2
+	resizedCenterY = height/2
 
-  # if the left mouse button was clicked, record the starting
-  # (x, y) coordinates and indicate that cropping is being
-  # performed
-  if event == cv2.EVENT_LBUTTONDOWN:
-    ref_point = [(x, y)]
-    cropping = True
+	lengthX = (resizedCenterX-centerX)
+	lengthY = (resizedCenterY-centerY)
+	lengthX = lengthX*20
+	lengthY = lengthY*20
 
-  # check to see if the left mouse button was released
-  elif event == cv2.EVENT_LBUTTONUP:
-    # record the ending (x, y) coordinates and indicate that
-    # the cropping operation is finished
-    ref_point.append((x, y))
-    cropping = False
+	rectangleInitialX = initialCenterX-lengthX
+	rectangleInitialY = initialCenterY-lengthY
 
-    # draw a rectangle around the region of interest
-    cv2.rectangle(image, ref_point[0], ref_point[1], (0, 255, 0), 12)
-    cv2.imshow("images.png", image)
+	initialRectangleHeight = newheight*20
+	initialRectangleWidth = newwidth*20
+	rectangleX = rectangleInitialX - initialRectangleWidth/2
+	rectangleY = rectangleInitialY - initialRectangleHeight/2
 
-# load the image, clone it, and setup the mouse callback function
-image = cv2.imread("images.png")
-clone = image.copy()
-cv2.namedWindow("image")
-cv2.setMouseCallback("image", shape_selection)
+	print(int(rectangleY),int(rectangleY+initialRectangleHeight), int(rectangleX),int(rectangleX+initialRectangleWidth))
+	return initial[int(rectangleY):int(rectangleY+initialRectangleHeight), int(rectangleX):int(rectangleX+initialRectangleWidth)]
 
-# keep looping until the 'q' key is pressed
-while True:
-  # display the image and wait for a keypress
-  cv2.imshow("image", image)
-  key = cv2.waitKey(1) & 0xFF
+#picture is the input picture and contours are from template
+def scaled(contour_rectangles, picture):    
+    picture = cv2.cvtColor(picture, cv2.COLOR_BGR2GRAY)
+    array_information = contour_rectangles['entire']
+    maximum_width = array_information[0][2]
+    maximum_height = array_information[0][3]
+    contours, hierarchy = cv2.findContours(picture, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours_poly_img = cv2.approxPolyDP(contours[0], 3, True)
+    rect_img_width = cv2.boundingRect(contours_poly_img)[2]
+    rect_img_height = cv2.boundingRect(contours_poly_img)[3]
+    img_centerX = maximum_width/2.0
+    img_centerY = maximum_height/2.0
+    scalingX = float(rect_img_width)/maximum_width
+    scalingY = float(rect_img_height)/maximum_height
+    picture_resize = cv2.resize(picture, (maximum_width, maximum_height), fx=scalingX, fy=scalingY)
+    return picture_resize
 
-  # if the 'r' key is pressed, reset the cropping region
-  if key == ord("r"):
-    image = clone.copy()
-
-  # if the 'c' key is pressed, break from the loop
-  elif key == ord("c"):
-    break
-
-# if there are two reference points, then crop the region of interest
-# from teh image and display it
-if len(ref_point) == 2:
-  picture = clone[ref_point[0][1]:ref_point[1][1], ref_point[0][0]:ref_point[1][0]]
-  #cv2.imshow("crop_img", crop_img)
-
-#picture = cv2.imread("images.png")
-#picture = np.array(picture)
-picture = cv2.cvtColor(picture, cv2.COLOR_BGR2GRAY)
-array_information = contour_rectangles['entire']
-maximum_width = array_information[0][2]
-maximum_height = array_information[0][3]
-contours, hierarchy = cv2.findContours(picture, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-contours_poly_img = cv2.approxPolyDP(contours[0], 3, True)
-rect_img_width = cv2.boundingRect(contours_poly_img)[2]
-rect_img_height = cv2.boundingRect(contours_poly_img)[3]
-img_centerX = maximum_width/2.0
-img_centerY = maximum_height/2.0
-scalingX = float(rect_img_width)/maximum_width
-scalingY = float(rect_img_height)/maximum_height
-picture_resize = cv2.resize(picture, (maximum_width, maximum_height), fx=scalingX, fy=scalingY)
-
-
-#thresh = 255 - cv2.threshold(image, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
 def find_information(image_information, picture):
     information = {
     'name': '',
@@ -147,11 +145,9 @@ def find_information(image_information, picture):
         information[key] = data
     return information
 
-
-
-#print(find_information(contour_rectangles, picture_resize))
-cv2.imshow("Picture", picture_resize)
-cv2.imshow("Picture Picture", picture)
-print(contour_rectangles)
-cv2.imshow('Image', blank_img)
-cv2.waitKey(10000000)
+lines = template_image("image_new.png", "image_new_copy.png")
+rectangles = information(lines)
+picture = input_image("img.png")
+scaledimg = scaled(rectangles, picture)
+information = find_information(rectangles, scaledimg)
+print(information)
