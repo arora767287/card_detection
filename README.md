@@ -1,29 +1,38 @@
-#Foreigner (Green) NRIC Identification Card Reader Code
+# Foreigner (Green) NRIC Identification Card Reader Code
 
 This project takes in an NRIC card, scans the input, and returns the information contained on the card about the person who it belongs to. The information returned includes the person's name, their date of birth, their nationality, their FIN Number, and their gender. 
 
-Quick Links:
+## Quick Links:
 
 Dependencies
 Starting The Code
 How To Scan NRICs (Foreigners' Only)
 
-Dependencies
+## Dependencies
 
-To use this program, install the following libraries using the Python pip installation package:
+To use this program, install the following libraries using pip:
+cv2
+```bash
+pip3 install opencv-python
+```
+numpy
+```bash
+pip3 install numpy
+```
+imutils
+```bash
+pip3 install imutils
+```
 
-- cv2 http://opencv.org/
-- numpy https://numpy.org/
-- imutils https://pypi.org/project/imutils/
-
-Starting The Code
+## Starting The Code
 
 In order to start the program, download the card_detection.py file or run it in an editor. 
 Run the following command in your terminal (for Mac Users):
-python3 card_detection.py
+```bash
+pip3 install card_detection_card.py
+```
 
-
-How to scan NRICs
+## How to scan NRICs
 
 The program landscape images of the NRIC card as input, so make sure the width of the input image is larger than its height. It also works best when the image
 of the NRIC card is taken from a distance, and is centered in the frame of the picture (straightened). Having taken an image of the card which is straight is very helpful with making the information detection accurate.
