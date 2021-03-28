@@ -5,12 +5,9 @@ from imutils import contours
 import pytesseract
 
 #Analyzes contours (which are later used as regions of interest) of the the template image of the NRIC
-def template_image(template_img, img_fields):
+def template_image(img_fields):
     img = cv2.imread(img_fields)
     img = np.array(img)
-
-    blank_img = cv2.imread(template_img)
-    blank_img = np.array(blank_img)
     
     #image processing operations on the template image
     ret, thresh = cv2.threshold(img,127,200,cv2.THRESH_BINARY)
