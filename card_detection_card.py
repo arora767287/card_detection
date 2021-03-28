@@ -3,6 +3,7 @@ import numpy as np
 import imutils
 from imutils import contours
 import pytesseract
+
 #Analyzes contours (which are later used as regions of interest) of the the template image of the NRIC
 def template_image(template_img, img_fields):
     img = cv2.imread(img_fields)
@@ -31,8 +32,10 @@ def template_image(template_img, img_fields):
     #Store contours in an array
     c = np.array([contours[0],contours[1],contours[2],contours[3],contours[4],contours[21], contour[0]])
     return c
+
 #Attaches contours to the regions of interest and fields that they correspond to while turning the contours into rectangles
 def information(contours):
+    
     #List of all fields that are important on the front of the NRIC Card
     placement = ['nationality', 'date of birth', 'gender', 'name', 'picture', 'fin_number', 'entire']
     #
@@ -50,6 +53,7 @@ def information(contours):
     
     #Finds the center of every contour and creates a bounding box around it
     #Stores the center and bounding box in the contours_rectangle dictionary of regions of interest
+    
     for i in range(0, len(contours)):
         center = cv2.moments(contours[i])
         if(center["m00"]==0):
@@ -60,6 +64,7 @@ def information(contours):
         boundRect[i] = cv2.boundingRect(contours_poly[i])
         contour_rectangles[placement[i]] = [boundRect[i], centerX, centerY]
     return contour_rectangles   
+
 #Takes the image url to the picture of the NRIC and executes option 2 by cropping unnecessary parts of the image away
 def input_image(image_url):
     ratio = 10
@@ -68,16 +73,19 @@ def input_image(image_url):
     height = int(initial.shape[0] * (100/ratio) / 100)
 
     # desired size of resized picture of NRIC
+    
     dsize = (width, height)
     image = cv2.resize(initial,dsize)
 
     #Image processing operations to analyze the largest contour of the image
+    
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     gray = cv2.GaussianBlur(gray, (5, 5), 0)
     edged = cv2.Canny(gray, 60, 70)
     contours, hierarchy = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     cnts = sorted(contours, key = cv2.contourArea, reverse=True)[:5]
+    
     # loop over the contours
     for c in cnts:
         # approximate the contour
@@ -119,9 +127,10 @@ def input_image(image_url):
     #Return the part of the image with the NRIC card (crop the image based on the position of the rectangle)
     return initial[int(rectangleY):int(rectangleY+initialRectangleHeight), int(rectangleX):int(rectangleX+initialRectangleWidth)]
 
-# Callback function that executes if the user wants to crop the input image themselves to identify the NRIC card's location in the image   
+
 ref_point = []
 cropping = False
+# Callback function that executes if the user wants to crop the input image themselves to identify the NRIC card's location in the image   
 def shape_selection(event, x, y, flags, param):
   # grab references to the global variables
   global ref_point, cropping
@@ -142,7 +151,6 @@ def shape_selection(event, x, y, flags, param):
 
     # draw a rectangle around the region of interest
     cv2.rectangle(image, ref_point[0], ref_point[1], (0, 255, 0), 9)
-    #cv2.imshow("images.png", image)
 
 #Scales the NRIC image to be analysed to the size of the template image to match the two NRIC cards and find regions of interest
 def scaled(contour_rectangles, picture):    
@@ -155,20 +163,26 @@ def scaled(contour_rectangles, picture):
 
     #Finds outline contour of image
     contours, hierarchy = cv2.findContours(picture, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    
     #Approximates bounding box around the outline contour of the input image
     contours_poly_img = cv2.approxPolyDP(contours[0], 3, True)
+    
     #Finds the width and height of the input image
     rect_img_width = cv2.boundingRect(contours_poly_img)[2]
     rect_img_height = cv2.boundingRect(contours_poly_img)[3]
+    
     #Finds the center of the input image
     img_centerX = maximum_width/2.0
     img_centerY = maximum_height/2.0
+    
     #Finds the scaling factor to resize the input image to the size of the template image
     scalingX = float(rect_img_width)/maximum_width
     scalingY = float(rect_img_height)/maximum_height
+    
     #Resizes the input image
     picture_resize = cv2.resize(picture, (maximum_width, maximum_height), fx=scalingX, fy=scalingY)
     return picture_resize
+
 #Goes through the dictionary and fills out each field using the output of OCR from the regions of interest corresponding to each field on the card
 def find_information(image_information, picture):
     information = {
@@ -190,12 +204,14 @@ def find_information(image_information, picture):
         data = pytesseract.image_to_string(ROI, lang='eng',config='--psm 6')
         information[key] = data
     return information
-#Program 
+
+#Program starts here
 lines = template_image("image_new.png", "image_new_copy.png")
 rectangles = information(lines)
 img_url = input("Insert image path (or just drag and drop the image into terminal): ")
 
 option = input("Crop or not crop image")
+
 #If the user wants to crop the image themselves
 if option == '1':
     image = cv2.imread(img_url)
@@ -222,6 +238,7 @@ if option == '1':
         if len(ref_point) == 2:
             picture = clone[ref_point[0][1]:ref_point[1][1], ref_point[0][0]:ref_point[1][0]]
     #cv2.imshow("crop_img", crop_img)
+    
 #If the user wants to make the computer crop the image
 elif option == '2':
     picture = input_image(img_url)
