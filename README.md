@@ -29,7 +29,7 @@ pip3 install imutils
 In order to start the program, download the card_detection.py file or run it in an editor. 
 Run the following command in your terminal (for Mac Users):
 ```bash
-pip3 install card_detection_card.py
+python3 card_detection_card.py
 ```
 
 ## How to scan NRICs
