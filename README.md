@@ -34,7 +34,7 @@ pip3 install card_detection_card.py
 
 ## How to scan NRICs
 
-The program landscape images of the NRIC card as input, so make sure the width of the input image is larger than its height. It also works best when the image
+The program takes in landscape images of the NRIC card as input, so make sure the width of the input image is larger than its height. It also works best when the image
 of the NRIC card is taken from a distance, and is centered in the frame of the picture (straightened). Having taken an image of the card which is straight is very helpful with making the information detection accurate.
 
 Once the code starts, it will ask you for the file path to the image of your NRIC card. Then, it will give you two options. Press 1 to crop the original NRIC card out of the frame of your image (if it is noisy). Press 2 to proceed with the image selected as it is (if the background contrasts the card well).
