@@ -6,7 +6,7 @@ This project takes in an NRIC card, scans the input, and returns the information
 
 Dependencies
 Starting The Code
-How To Scan NRICs (Foreigners' Only)
+How To Scan NRICs (Foreigners' Cards Only).
 
 ## Dependencies
 
@@ -23,10 +23,14 @@ imutils
 ```bash
 pip3 install imutils
 ```
+pytesseract
+```bash
+pip3 install pytesseract
+```
 
 ## Starting The Code
 
-In order to start the program, download the card_detection.py file or run it in an editor. 
+In order to start the program, download the card_detection.py file or run it in an editor. Download the image_new_copy.png file as well, and make sure it is on the same file level as the card_detection.py file. Your input image should also be at the same file level as the image_new_copy.png file and the card_detection.py file.
 Run the following command in your terminal (for Mac Users):
 ```bash
 python3 card_detection_card.py
